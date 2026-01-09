@@ -88,31 +88,38 @@ Echolab uses advanced NLP and machine learning to:
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    subgraph Frontend
-        A[Next.js App] --> B[React Components]
-        B --> C[Supabase Auth]
+graph LR
+    subgraph Client
+        A[Next.js Frontend]
+        B[Supabase Auth]
     end
 
-    subgraph Backend
-        D[FastAPI Server] --> E[SQLAlchemy ORM]
-        E --> F[(PostgreSQL + pgvector)]
-        D --> G[OpenAI API]
-        D --> H[Zendesk API]
-        D --> I[GrowthBook SDK]
+    subgraph Backend_API[Backend API]
+        C[FastAPI Server]
+        D[SQLAlchemy ORM]
     end
 
-    subgraph AI Pipeline
-        J[Embedding Models] --> K[Clustering Engine]
-        K --> L[Pain Point Analyzer]
-        L --> M[Hypothesis Generator]
+    subgraph External_Services[External Services]
+        E[OpenAI GPT-4o]
+        F[Zendesk API]
+        G[GrowthBook]
     end
 
-    A --> D
-    J --> F
-    M --> F
-    H --> D
-    I --> D
+    subgraph Data_Layer[Data & AI]
+        H[(PostgreSQL + pgvector)]
+        I[Embedding Models]
+        J[Clustering Engine]
+    end
+
+    A --> C
+    B --> C
+    C --> D
+    D --> H
+    C --> E
+    C --> F
+    C --> G
+    I --> J
+    J --> H
 </mermaid>
 
 ### Data Flow
