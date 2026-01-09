@@ -1,180 +1,164 @@
-# 🎯 Echolab - AI-Powered Customer Feedback Intelligence Platform
+# 🔬 Echolab - AI-Powered Customer Feedback Intelligence
 
 <div align="center">
 
-![Echolab Logo](frontend/public/images/echolab-logo.png)
+![Python](https://img.shields.io/badge/Python-74.6%25-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-22.3%25-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 
-**Transform customer support tickets into actionable product insights with AI**
+**Transform unstructured customer feedback into actionable product insights**
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
-[![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[Features](#-key-features) • [Tech Stack](#-tech-stack) • [Architecture](#-architecture) • [Installation](#-installation)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## 📋 Overview
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [API Documentation](#-api-documentation)
-- [Project Structure](#-project-structure)
-- [Screenshots](#-screenshots)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
+**Echolab** is an enterprise-grade AI platform that automatically converts thousands of support tickets into data-driven product insights. Using advanced NLP and machine learning, Echolab identifies pain points, clusters similar issues, and generates actionable hypotheses for product improvements.
 
----
+### 🎯 The Problem
 
-## 🌟 Overview
+Product teams face a critical challenge:
+- **Thousands of support tickets** arrive daily across multiple channels
+- **Manual analysis** is time-consuming and inconsistent
+- **Valuable insights** are buried in unstructured text
+- **Product decisions** lack data-driven foundations
 
-**Echolab** is an enterprise-grade platform that leverages AI and machine learning to transform unstructured customer feedback into actionable product insights. Built for Product Managers, Customer Success teams, and Data Analysts, Echolab automatically clusters support tickets, identifies pain points, and generates testable hypotheses for product improvements.
+### ✅ The Solution
 
-### The Problem We Solve
-
-Product teams receive thousands of support tickets, feature requests, and bug reports across multiple channels. Manually analyzing this feedback is:
-- **Time-consuming**: Hours spent reading and categorizing tickets
-- **Inconsistent**: Human bias leads to missed patterns
-- **Reactive**: Insights come too late to influence product decisions
-
-### Our Solution
-
-Echolab uses advanced NLP and machine learning to:
-1. **Automatically cluster** similar tickets using semantic embeddings
-2. **Extract pain points** with AI-powered sentiment analysis
-3. **Generate hypotheses** for A/B testing and product experiments
-4. **Integrate seamlessly** with existing tools (Zendesk, GrowthBook)
+Echolab automates customer feedback analysis:
+- **Semantic Clustering** groups similar tickets using transformer embeddings
+- **AI Analysis** powered by GPT-4o extracts pain points and patterns
+- **Automated Insights** generate product improvement hypotheses
+- **Integrated Workflow** connects with Zendesk, GrowthBook, and more
 
 ---
 
 ## ✨ Key Features
 
-### 🤖 AI-Powered Analysis
-- **Semantic Clustering**: Groups similar tickets using transformer-based embeddings (MiniLM-L6-v2, Qwen3-Embedding-0.6B)
-- **Pain Point Extraction**: Identifies customer frustrations using BART and GPT-4o
-- **Hypothesis Generation**: Creates data-driven product improvement suggestions with supporting evidence
+### 🤖 **Intelligent Ticket Analysis**
+- GPT-4o-powered semantic analysis of support tickets
+- Automatic pain point extraction and categorization
+- Multi-dimensional sentiment analysis
+- Context-aware issue understanding
 
-### 🔗 Enterprise Integrations
-- **Zendesk Sync**: Bi-directional ticket synchronization with webhook support
-- **GrowthBook**: Generate A/B test variants from customer feedback
-- **RAG System**: Semantic search across documentation and support content
+### 📊 **Semantic Clustering**
+- Transformer-based embeddings (Hugging Face models)
+- Automatic grouping of similar customer issues
+- Vector similarity search with pgvector
+- Cluster visualization and exploration
 
-### 📊 Analytics Dashboard
-- Real-time visualization of ticket trends and pain point clusters
-- Customizable filters by organization, feature, and time period
-- Export capabilities for stakeholder presentations
+### 🔗 **Zendesk Integration**
+- Bi-directional sync with Zendesk API
+- Real-time webhook processing
+- Custom field mapping
+- Automated ticket ingestion
 
-### 🔐 Security & Scalability
-- Multi-tenant architecture with organization-level isolation
-- Supabase authentication with OAuth support
-- Async PostgreSQL operations for high-throughput processing
-- pgvector extension for efficient similarity search
+### 🧪 **GrowthBook Integration**
+- A/B test variant generation from insights
+- Hypothesis-driven experiment creation
+- Feature flag management
+- Experiment tracking and analytics
 
-### 🎨 Modern UI/UX
-- Built with Next.js 15 and React 19
-- Responsive design with TailwindCSS
-- Server-side rendering for optimal performance
-- Real-time updates with optimistic UI patterns
+### 📚 **RAG-Powered Documentation Search**
+- Semantic documentation search
+- Context-aware answer generation
+- Knowledge base integration
+- Internal wiki connectivity
 
----
+### 🏢 **Multi-Tenant Architecture**
+- Organization-level data isolation
+- Role-based access control (planned)
+- Custom branding and configuration
+- Scalable infrastructure
 
-## 🏗️ Architecture
-
-```mermaid
-graph LR
-    subgraph Client
-        A[Next.js Frontend]
-        B[Supabase Auth]
-    end
-
-    subgraph Backend_API[Backend API]
-        C[FastAPI Server]
-        D[SQLAlchemy ORM]
-    end
-
-    subgraph External_Services[External Services]
-        E[OpenAI GPT-4o]
-        F[Zendesk API]
-        G[GrowthBook]
-    end
-
-    subgraph Data_Layer[Data & AI]
-        H[(PostgreSQL + pgvector)]
-        I[Embedding Models]
-        J[Clustering Engine]
-    end
-
-    A --> C
-    B --> C
-    C --> D
-    D --> H
-    C --> E
-    C --> F
-    C --> G
-    I --> J
-    J --> H
-```
-
-### Data Flow
-
-1. **Ingestion**: Tickets arrive via Zendesk webhooks or manual import
-2. **Processing**: Text is cleaned, tokenized, and embedded using local transformer models
-3. **Clustering**: Semantic similarity groups tickets into actionable themes
-4. **Analysis**: GPT-4o analyzes clusters to extract pain points and hypotheses
-5. **Presentation**: Results displayed in dashboard with drill-down capabilities
-6. **Action**: Export to GrowthBook for A/B testing or CSV for reporting
+### 📈 **Real-Time Analytics Dashboard**
+- Live ticket processing metrics
+- Cluster insights and trends
+- Pain point frequency analysis
+- Product impact visualization
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Framework**: FastAPI (async endpoints, automatic OpenAPI docs)
-- **ORM**: SQLAlchemy 2.0 (async session management)
-- **Database**: PostgreSQL with pgvector extension for embeddings
-- **AI/ML**:
-  - OpenAI GPT-4o for hypothesis generation
-  - Transformers (Hugging Face) for local embeddings
-  - BART-large-CNN for summarization
-- **Authentication**: Supabase Auth
-- **Task Queue**: Async processing with asyncio
-- **API Clients**: Zendesk API, GrowthBook SDK
+### **Backend**
+- **FastAPI** - High-performance async web framework
+- **PostgreSQL** - Relational database with advanced features
+- **pgvector** - Vector similarity search extension
+- **SQLAlchemy 2.0** - Modern ORM with async support
+- **Alembic** - Database migration management
+- **OpenAI GPT-4o** - Advanced language model for analysis
+- **Hugging Face Transformers** - Sentence embeddings
+- **Supabase Auth** - Authentication and authorization
 
-### Frontend
-- **Framework**: Next.js 15 with App Router
-- **UI Library**: React 19 with Server Components
-- **Styling**: TailwindCSS 4.x + Radix UI primitives
-- **State Management**: React Context + Server State
-- **Animations**: Framer Motion
-- **Icons**: Lucide React, Tabler Icons
-- **Forms**: React Hook Form with Zod validation
+### **Frontend**
+- **Next.js 15** - React framework with App Router
+- **React 19** - Latest React features
+- **TailwindCSS 4.x** - Utility-first styling
+- **Radix UI** - Accessible component primitives
+- **React Hook Form** - Form state management
+- **Zod** - TypeScript-first schema validation
 
-### DevOps & Tools
-- **Version Control**: Git with conventional commits
-- **Package Management**: npm (frontend), pip (backend)
-- **Environment**: dotenv for configuration
-- **API Testing**: FastAPI automatic interactive docs
-- **Database Migrations**: Alembic
+### **Infrastructure**
+- **Docker** - Containerization
+- **PostgreSQL** - Primary database
+- **Vector Database** - Semantic search capabilities
+- **Webhooks** - Real-time event processing
+
+---
+
+## 🏗️ Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Next.js Frontend                       │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐   │
+│  │ Dashboard   │  │   Clusters   │  │  Experiments  │   │
+│  │ Analytics   │  │   Explorer   │  │   Manager     │   │
+│  └──────┬──────┘  └──────┬───────┘  └───────┬───────┘   │
+└─────────┼─────────────────┼───────────────────┼──────────┘
+          │                 │                   │
+          └─────────────────┼───────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│                   FastAPI Backend                         │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐   │
+│  │   Ticket    │  │  Clustering  │  │  Integration  │   │
+│  │  Analysis   │  │   Engine     │  │    Layer      │   │
+│  └──────┬──────┘  └──────┬───────┘  └───────┬───────┘   │
+└─────────┼─────────────────┼───────────────────┼──────────┘
+          │                 │                   │
+          ▼                 ▼                   ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
+│   OpenAI     │  │ PostgreSQL + │  │    Zendesk API   │
+│   GPT-4o     │  │   pgvector   │  │  GrowthBook API  │
+└──────────────┘  └──────────────┘  └──────────────────┘
+```
+
+### Data Flow
+
+1. **Ingestion**: Tickets synced from Zendesk via webhooks/API
+2. **Embedding**: Text converted to vector embeddings using transformers
+3. **Clustering**: Semantic similarity clustering with pgvector
+4. **Analysis**: GPT-4o extracts pain points and generates insights
+5. **Storage**: Results stored in PostgreSQL with vector indexing
+6. **Visualization**: Dashboard displays clusters, trends, and insights
+7. **Action**: Insights converted to GrowthBook experiments
 
 ---
 
 ## 🚀 Installation
 
 ### Prerequisites
-
-- **Python 3.10+** with pip
-- **Node.js 18+** with npm
-- **PostgreSQL 14+** with [pgvector extension](https://github.com/pgvector/pgvector)
-- **Supabase account** (or self-hosted Supabase)
-- **OpenAI API key** (for GPT-4o)
-- **Zendesk account** (optional, for integration)
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL 14+ with pgvector extension
+- OpenAI API key
+- Zendesk API credentials (optional)
 
 ### Backend Setup
 
@@ -192,23 +176,16 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your credentials:
-# - SUPABASE_URL
-# - SUPABASE_KEY
-# - OPENAI_API_KEY
-# - ZENDESK_SUBDOMAIN (optional)
-# - ZENDESK_EMAIL (optional)
-# - ZENDESK_API_TOKEN (optional)
+# Add your API keys and database connection string
 
-# Run database migrations
+# Initialize database
 alembic upgrade head
 
-# Start the server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Run the server
+uvicorn main:app --reload --port 8000
 ```
 
-Backend will be available at `http://localhost:8000`
-API docs at `http://localhost:8000/docs`
+API will be available at `http://localhost:8000`
 
 ### Frontend Setup
 
@@ -220,311 +197,216 @@ cd ../frontend
 npm install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with:
-# - NEXT_PUBLIC_SUPABASE_URL
-# - NEXT_PUBLIC_SUPABASE_ANON_KEY
-# - NEXT_PUBLIC_API_URL=http://localhost:8000
+cp .env.local.example .env.local
+# Configure API endpoint
 
-# Start development server
+# Run development server
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3000`
-
-### Quick Start with Docker (Coming Soon)
-
-```bash
-docker-compose up -d
-```
+Application will open at `http://localhost:3000`
 
 ---
 
 ## 💡 Usage
 
-### 1. Authentication
+### 1. Connect Zendesk
 
-Navigate to `http://localhost:3000/login` and sign up with:
-- Email/password
-- Google OAuth (configured in Supabase)
-
-### 2. Import Tickets
-
-**Option A: Zendesk Integration**
-1. Go to Settings → Integrations
-2. Connect your Zendesk account (subdomain, email, API token)
-3. Click "Sync Tickets" to import historical data
-
-**Option B: Manual Upload**
-1. Navigate to Tickets → Import
-2. Upload CSV with columns: `subject`, `description`, `priority`, `tags`
-
-### 3. Analyze Feedback
-
-The AI pipeline automatically:
-- Generates embeddings for all tickets
-- Clusters similar issues (threshold: 0.5 similarity)
-- Extracts pain points using GPT-4o
-- Creates hypotheses ranked by confidence
-
-### 4. View Insights
-
-**Dashboard**: See aggregate metrics and trends
-**Pain Points**: Drill into specific customer frustrations
-**Hypotheses**: Review AI-generated product improvement ideas
-**Tickets**: Inspect individual tickets and their classifications
-
-### 5. Export & Act
-
-- **Export to CSV**: Download clusters for stakeholder presentations
-- **GrowthBook Integration**: Push hypotheses as A/B test variants
-- **Zendesk Comments**: Add analysis results back to tickets
-
----
-
-## 📚 API Documentation
-
-### Core Endpoints
-
-#### Organizations
-```http
-POST   /organizations/          # Create organization
-GET    /organizations/{id}      # Get organization details
-GET    /organizations/          # List all organizations
-```
-
-#### Tickets
-```http
-POST   /tickets/                # Create single ticket
-POST   /tickets/bulk/           # Bulk create tickets
-GET    /tickets/{id}            # Get ticket with analysis
-GET    /tickets/                # List tickets with filters
-```
-
-#### Zendesk Integration
-```http
-POST   /integrations/zendesk/sync                  # Sync tickets from Zendesk
-POST   /prod/tickets/zendesk/import                # Import using user credentials
-POST   /tickets/webhook/zendesk                    # Webhook receiver (single)
-POST   /tickets/webhook/zendesk/bulk               # Webhook receiver (bulk)
-POST   /prod/tickets/zendesk/create                # Create ticket in Zendesk
-```
-
-#### AI Analysis
-```http
-POST   /b2b_saas_context/answer_with_llm           # Generate hypothesis for ticket
-POST   /b2b_saas_context/search_similar           # Find similar context chunks
-GET    /painpoints/                                # List all pain point clusters
-POST   /painpoints/analyze                         # Trigger pain point analysis
-```
-
-#### GrowthBook
-```http
-POST   /growthbook/features                        # Create feature from hypothesis
-GET    /growthbook/experiments                     # List experiments
-```
-
-### Example Request
-
-```bash
-# Create a ticket and get AI analysis
-curl -X POST http://localhost:8000/tickets/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "subject": "Login page is slow on mobile",
-    "description": "It takes 10+ seconds to load the login page on my iPhone. Very frustrating!",
-    "priority": "high",
-    "organization_id": 1
-  }'
-```
-
-### Example Response
-
-```json
+```python
+# Configure Zendesk integration
+POST /api/integrations/zendesk
 {
-  "id": 123,
-  "subject": "Login page is slow on mobile",
-  "description": "It takes 10+ seconds to load the login page on my iPhone...",
-  "priority": "high",
-  "feature": "Authentication",
-  "hypothesis": {
-    "Rank1": "Optimizing mobile login page load time may reduce user frustration and increase conversion rates",
-    "Rank2": "Implementing lazy loading for non-critical assets could improve perceived performance",
-    "ABVariantIdea": "A: Current login page | B: Optimized mobile login with lazy loading",
-    "ExactPhrasesEvidence": {
-      "FromTicket": "takes 10+ seconds to load the login page on my iPhone",
-      "FromResearch": "Mobile Performance Best Practices - https://web.dev/mobile"
-    }
-  },
-  "created_at": "2026-01-08T10:30:00Z"
+  "subdomain": "your-company",
+  "api_token": "your-token",
+  "email": "admin@company.com"
 }
 ```
 
----
+### 2. Sync Tickets
 
-## 📂 Project Structure
+```python
+# Import tickets (automatic via webhooks or manual)
+POST /api/tickets/sync
+{
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-31"
+}
+```
 
+### 3. Generate Clusters
+
+```python
+# Analyze and cluster tickets
+POST /api/clusters/generate
+{
+  "organization_id": "org-123",
+  "min_cluster_size": 5
+}
 ```
-Echolab/
-├── backend/
-│   ├── app/
-│   │   ├── api/              # FastAPI route handlers
-│   │   │   ├── ticket.py     # Ticket CRUD endpoints
-│   │   │   ├── zendesk_sync.py
-│   │   │   ├── pain_points.py
-│   │   │   ├── b2b_saas_context.py
-│   │   │   └── growthbook.py
-│   │   ├── models/           # SQLAlchemy ORM models
-│   │   │   ├── ticket.py
-│   │   │   ├── organization.py
-│   │   │   ├── user.py
-│   │   │   └── b2b_saas_context.py
-│   │   ├── schemas/          # Pydantic validation schemas
-│   │   ├── crud/             # Database operations
-│   │   ├── services/         # Business logic
-│   │   │   ├── zendesk_client.py
-│   │   │   ├── pain_points_cluster.py
-│   │   │   └── ingest.py
-│   │   ├── rag/              # RAG system components
-│   │   │   ├── extract_pages.py
-│   │   │   ├── b2b_saas_table.py
-│   │   │   └── upload_context.py
-│   │   ├── config.py         # Configuration management
-│   │   ├── db.py             # Database connection
-│   │   └── main.py           # Application entry point
-│   ├── requirements.txt
-│   └── alembic.ini           # Database migrations
-│
-├── frontend/
-│   ├── app/                  # Next.js App Router
-│   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── hypothesis/
-│   │   └── page.tsx          # Dashboard
-│   ├── components/           # React components
-│   │   ├── UI/               # Reusable UI primitives
-│   │   ├── Dashboard.tsx
-│   │   ├── CustomerPainPoints.tsx
-│   │   └── BugsAndFeatures.tsx
-│   ├── actions/              # Server actions
-│   ├── utils/                # Utility functions
-│   │   └── supabase/         # Supabase client setup
-│   ├── types/                # TypeScript definitions
-│   ├── package.json
-│   └── next.config.ts
-│
-├── Embedding/                # Standalone embedding scripts
-│   ├── embedding.py          # Generate embeddings
-│   └── semantic.py           # Semantic clustering
-│
-├── requirements.txt          # Root-level dependencies
-├── alembic.ini
-└── README.md
-```
+
+### 4. View Insights
+
+Navigate to the dashboard to see:
+- Clustered ticket groups
+- Pain point analysis
+- Trending issues
+- Recommended product improvements
 
 ---
 
-## 🖼️ Screenshots
+## 📊 API Documentation
 
-### Dashboard Overview
-![Dashboard](docs/screenshots/dashboard.png)
-*Real-time metrics showing ticket volume, pain point distribution, and hypothesis generation*
+Once the server is running, visit:
+- **Interactive Docs**: http://localhost:8000/docs
+- **Alternative Docs**: http://localhost:8000/redoc
 
-### Pain Points Analysis
-![Pain Points](docs/screenshots/pain-points.png)
-*AI-clustered customer pain points with severity scoring and trend analysis*
+### Key Endpoints
 
-### Hypothesis Generation
-![Hypotheses](docs/screenshots/hypotheses.png)
-*AI-generated product improvement hypotheses with supporting evidence and A/B test variants*
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/tickets` | POST | Create or import tickets |
+| `/api/clusters` | GET | Retrieve ticket clusters |
+| `/api/analysis/{ticket_id}` | GET | Get AI analysis for ticket |
+| `/api/search` | POST | Semantic documentation search |
+| `/api/experiments` | POST | Create GrowthBook experiment |
 
-### Ticket Management
-![Tickets](docs/screenshots/tickets.png)
-*Comprehensive ticket view with filtering, tagging, and AI-powered categorization*
+---
+
+## 🎓 Technical Highlights
+
+### What Makes This Project Stand Out
+
+1. **Advanced NLP & ML**
+   - Transformer-based semantic embeddings
+   - GPT-4o integration for analysis
+   - Vector similarity search with pgvector
+   - RAG (Retrieval-Augmented Generation) implementation
+
+2. **Full-Stack Modern Architecture**
+   - FastAPI async backend
+   - Next.js 15 App Router
+   - Server-side rendering and actions
+   - Real-time webhook processing
+
+3. **Enterprise-Grade Features**
+   - Multi-tenant architecture
+   - Scalable vector database
+   - Third-party API integrations
+   - Authentication and authorization
+
+4. **Database Engineering**
+   - PostgreSQL with advanced extensions
+   - Vector indexing for similarity search
+   - Database migration management
+   - Optimized query performance
+
+5. **System Integration**
+   - Bi-directional Zendesk sync
+   - GrowthBook A/B testing integration
+   - Webhook event processing
+   - RESTful API design
 
 ---
 
 ## 🗺️ Roadmap
 
-### Q1 2026
-- [x] Core ticket ingestion and clustering
-- [x] Zendesk integration (sync + webhooks)
-- [x] GPT-4o hypothesis generation
-- [x] Basic dashboard UI
-- [ ] User feedback loop (thumbs up/down on hypotheses)
-- [ ] Advanced filtering and search
+### Current Features (Q1 2026)
+- ✅ Semantic ticket clustering
+- ✅ GPT-4o powered analysis
+- ✅ Zendesk integration
+- ✅ GrowthBook connectivity
+- ✅ RAG documentation search
+- ✅ Multi-tenant support
 
-### Q2 2026
-- [ ] Jira integration
-- [ ] Slack notifications for high-priority pain points
-- [ ] Custom ML model training on user feedback
-- [ ] Multi-language support (Spanish, French, German)
+### Planned Features
+- [ ] Jira integration for ticket management
+- [ ] Slack notifications for critical insights
+- [ ] Multi-language support (i18n)
 - [ ] Role-based access control (RBAC)
-
-### Q3 2026
-- [ ] Automated A/B test deployment to GrowthBook
-- [ ] Sentiment analysis dashboard
-- [ ] API rate limiting and usage analytics
-- [ ] White-label customization
-
-### Future
-- [ ] Intercom, HubSpot, Salesforce integrations
-- [ ] Predictive analytics (churn risk, feature adoption)
-- [ ] Voice-of-customer reports (auto-generated PDF/PPT)
-- [ ] Mobile app (iOS/Android)
+- [ ] Custom ML model training
+- [ ] Advanced analytics and reporting
+- [ ] Export to CSV/Excel
+- [ ] API rate limiting and caching
 
 ---
 
-## 🤝 Contributing
+## 🧪 Testing
 
-We welcome contributions! Here's how to get started:
+```bash
+# Backend tests
+cd backend
+pytest tests/ -v
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit your changes**: `git commit -m 'Add amazing feature'`
-4. **Push to the branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
+# Frontend tests
+cd frontend
+npm test
+```
 
-### Development Guidelines
-- Follow PEP 8 for Python code
-- Use ESLint/Prettier for TypeScript/React
-- Write tests for new features
-- Update documentation for API changes
-- Keep commit messages clear and descriptive
+---
+
+## 📁 Project Structure
+
+```
+Echolab/
+├── backend/               # FastAPI application
+│   ├── app/
+│   │   ├── api/          # API endpoints
+│   │   ├── models/       # SQLAlchemy models
+│   │   ├── services/     # Business logic
+│   │   ├── integrations/ # Zendesk, GrowthBook
+│   │   └── utils/        # Helper functions
+│   ├── alembic/          # Database migrations
+│   ├── tests/            # Test suite
+│   └── requirements.txt  # Python dependencies
+├── frontend/             # Next.js application
+│   ├── app/             # App Router pages
+│   ├── components/      # React components
+│   ├── lib/             # Utilities and actions
+│   └── public/          # Static assets
+├── Embedding/           # Standalone embedding scripts
+└── README.md           # This file
+```
+
+---
+
+## 🔒 Security
+
+- Supabase authentication with JWT
+- Organization-level data isolation
+- API key rotation support
+- Secure webhook verification
+- Environment variable configuration
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open source and available under standard licensing terms.
+
+---
+
+## 👤 Author
+
+**Bhavana Reddy**
+
+- GitHub: [@bhavanareddy19](https://github.com/bhavanareddy19)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/YOUR_PROFILE)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **OpenAI** for GPT-4o API
-- **Hugging Face** for transformer models
-- **Supabase** for authentication and database hosting
-- **FastAPI** for excellent async framework
-- **Vercel** for Next.js and deployment platform
-
----
-
-## 📞 Contact
-
-**Project Maintainer**: Bhavana Reddy
-
-- GitHub: [@bhavanareddy19](https://github.com/bhavanareddy19)
-- LinkedIn: [Connect with me](https://linkedin.com/in/bhavanareddy19)
-- Email: Bhavana.Vippala@colorado.edu
+- OpenAI for GPT-4o API
+- Hugging Face for transformer models
+- FastAPI and Next.js communities
+- PostgreSQL and pgvector teams
 
 ---
 
 <div align="center">
 
-**⭐ If you find Echolab useful, please consider giving it a star on GitHub! ⭐**
+**Transform customer feedback into product excellence! 🔬✨**
 
-Made with ❤️ by the Echolab team
+[⬆ Back to Top](#-echolab---ai-powered-customer-feedback-intelligence)
 
 </div>
