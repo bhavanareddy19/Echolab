@@ -120,7 +120,7 @@ graph LR
     C --> G
     I --> J
     J --> H
-</mermaid>
+```
 
 ### Data Flow
 
@@ -517,7 +517,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - GitHub: [@bhavanareddy19](https://github.com/bhavanareddy19)
 - LinkedIn: [Connect with me](https://linkedin.com/in/bhavanareddy19)
-- Email: bhavana.reddy@example.com
+- Email: Bhavana.Vippala@colorado.edu
 
 ---
 
