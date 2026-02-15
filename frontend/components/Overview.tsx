@@ -1,37 +1,69 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { fetchDashboardStats, type DashboardStats } from '@/lib/api';
+
 export default function Overview() {
-  const dashboardCards = [
-    {
-      title: 'Ticket Analyzed',
-      value: '2869',
-      change: '+12% vs last month',
-      changeType: 'positive' as const,
-    },
-    {
-      title: 'Painpoints',
-      value: '123',
-      change: '-12% vs last month',
-      changeType: 'negative' as const,
-    },
-    {
-      title: 'Hypothesis Generated',
-      value: '12',
-      change: '+12% vs last month',
-      changeType: 'positive' as const,
-    },
-    {
-      title: 'Experiments Created',
-      value: '56',
-      subtitle: 'out of 123 active tickets',
-      change: '+12% vs last month',
-      changeType: 'positive' as const,
-    },
-  ];
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardStats()
+      .then(setStats)
+      .catch((e) => setError(e.message));
+  }, []);
+
+  const dashboardCards = stats
+    ? [
+        {
+          title: 'Tickets Analyzed',
+          value: String(stats.classified_count),
+          change: `${stats.change_vs_last_month} vs last month`,
+          changeType: 'positive' as const,
+        },
+        {
+          title: 'Pain Points',
+          value: String(stats.cluster_count),
+          change: `${stats.cluster_count} active clusters`,
+          changeType: 'positive' as const,
+        },
+        {
+          title: 'Hypotheses Generated',
+          value: String(stats.hypothesis_count),
+          change: `${stats.change_vs_last_month} vs last month`,
+          changeType: 'positive' as const,
+        },
+        {
+          title: 'Experiments Created',
+          value: String(stats.experiment_count),
+          subtitle: `out of ${stats.hypothesis_count} hypotheses`,
+          change: `${stats.change_vs_last_month} vs last month`,
+          changeType: 'positive' as const,
+        },
+      ]
+    : [
+        { title: 'Tickets Analyzed', value: '...', change: 'Loading', changeType: 'positive' as const },
+        { title: 'Pain Points', value: '...', change: 'Loading', changeType: 'positive' as const },
+        { title: 'Hypotheses Generated', value: '...', change: 'Loading', changeType: 'positive' as const },
+        { title: 'Experiments Created', value: '...', change: 'Loading', changeType: 'positive' as const },
+      ];
 
   const getChangeStyles = (changeType: 'positive' | 'negative') => {
     return changeType === 'positive'
       ? 'rounded-[8px] border border-success bg-success p-1.5 text-[10px] leading-[12px] tracking-[0.5%] font-medium text-success'
       : 'rounded-[8px] border border-unconnected bg-unconnected p-1.5 text-[10px] leading-[12px] tracking-[0.5%] font-medium text-unconnected';
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="text-black text-xl font-semibold leading-[22px] tracking-[0.5%]">Overview</div>
+        <div className="rounded-[8px] bg-white px-3.5 py-4 text-red-500 text-sm">
+          Failed to load stats: {error}. Make sure the backend is running on {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -52,7 +84,7 @@ export default function Overview() {
                   <div className="text-2xl font-semibold text-black leading-[26px] tracking-[0.5%]">
                     {card.value}
                   </div>
-                  {card.subtitle && (
+                  {'subtitle' in card && card.subtitle && (
                     <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
                       {card.subtitle}
                     </p>

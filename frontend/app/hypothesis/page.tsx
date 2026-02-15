@@ -3,116 +3,139 @@
 import { Dashboard } from '@/components/Dashboard';
 import HypothesisContainer from '@/components/UI/HypothesisContainer';
 import Breadcrumb from '@/components/UI/Breadcrumb';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Hypothesis } from '@/types';
+import { fetchHypotheses, updateHypothesis as apiUpdateHypothesis, type HypothesisData } from '@/lib/api';
 
-export default function Hypothesis() {
-  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([
-    {
-      checked: false,
-      editMode: {
-        if: false,
-        then: false,
-        variantA: false,
-        variantB: false,
-      },
-      current: {
-        if: 'We optimize checkout page load time by implementing lazy loading for non-critical elements',
-        then: 'Conversion rate and time-to-completion will improve because users are abandoning due to slow page performance',
-        variantA: 'Current static FAQ link',
-        variantB: 'New interactive FAQ with search',
-      },
-      temp: {
-        if: 'We optimize checkout page load time by implementing lazy loading for non-critical elements',
-        then: 'Conversion rate and time-to-completion will improve because users are abandoning due to slow page performance',
-        variantA: 'Current static FAQ link',
-        variantB: 'New interactive FAQ with search',
-      },
-    },
-    {
-      checked: false,
-      editMode: {
-        if: false,
-        then: false,
-        variantA: false,
-        variantB: false,
-      },
-      current: {
-        if: 'We simplify the onboarding process by reducing the number of required steps from 8 to 4',
-        then: 'User completion rate will increase and support tickets will decrease because the current process is too complex',
-        variantA: 'Current 8-step onboarding flow',
-        variantB: 'Streamlined 4-step onboarding with progress indicator',
-      },
-      temp: {
-        if: 'We simplify the onboarding process by reducing the number of required steps from 8 to 4',
-        then: 'User completion rate will increase and support tickets will decrease because the current process is too complex',
-        variantA: 'Current 8-step onboarding flow',
-        variantB: 'Streamlined 4-step onboarding with progress indicator',
-      },
-    },
-    {
-      checked: false,
-      editMode: {
-        if: false,
-        then: false,
-        variantA: false,
-        variantB: false,
-      },
-      current: {
-        if: 'We add contextual help tooltips throughout the application interface',
-        then: 'User satisfaction scores will improve and feature adoption will increase because users struggle with understanding advanced features',
-        variantA: 'Current help documentation in separate section',
-        variantB:
-          'Contextual tooltips that appear on hover with relevant guidance',
-      },
-      temp: {
-        if: 'We add contextual help tooltips throughout the application interface',
-        then: 'User satisfaction scores will improve and feature adoption will increase because users struggle with understanding advanced features',
-        variantA: 'Current help documentation in separate section',
-        variantB:
-          'Contextual tooltips that appear on hover with relevant guidance',
-      },
-    },
-  ]);
+function parseHypothesisText(text: string): { ifText: string; thenText: string } {
+  // Parse "If X, then Y because Z" format
+  const lower = text.toLowerCase();
+  const ifIdx = lower.indexOf('if ');
+  const thenIdx = lower.indexOf(', then ');
+  if (ifIdx !== -1 && thenIdx !== -1) {
+    return {
+      ifText: text.slice(ifIdx + 3, thenIdx),
+      thenText: text.slice(thenIdx + 7),
+    };
+  }
+  return { ifText: text, thenText: '' };
+}
 
-  const handleHypothesisChange = (
-    index: number,
-    updatedHypothesis: Hypothesis
-  ) => {
+function getImpactLevel(score: number | null): 'High' | 'Medium' | 'Low' {
+  if (!score) return 'Medium';
+  if (score >= 0.8) return 'High';
+  if (score >= 0.5) return 'Medium';
+  return 'Low';
+}
+
+function getMetricFromConfig(config: Record<string, string> | null, key: string): string {
+  if (!config) return 'conversion-rate';
+  const val = config[key];
+  if (!val) return 'conversion-rate';
+  // Convert snake_case metric names to kebab-case
+  return val.replace(/_/g, '-');
+}
+
+export default function HypothesisPage() {
+  const [apiHypotheses, setApiHypotheses] = useState<HypothesisData[]>([]);
+  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchHypotheses()
+      .then((data) => {
+        setApiHypotheses(data.hypotheses);
+        // Convert API hypotheses to the frontend Hypothesis type
+        const converted: Hypothesis[] = data.hypotheses.map((h) => {
+          const parsed = parseHypothesisText(h.hypothesis_text);
+          const config = h.experiment_config || {};
+          return {
+            checked: false,
+            editMode: { if: false, then: false, variantA: false, variantB: false },
+            current: {
+              if: parsed.ifText,
+              then: parsed.thenText,
+              variantA: config.variant_a || 'Current implementation',
+              variantB: config.variant_b || 'New proposed solution',
+            },
+            temp: {
+              if: parsed.ifText,
+              then: parsed.thenText,
+              variantA: config.variant_a || 'Current implementation',
+              variantB: config.variant_b || 'New proposed solution',
+            },
+          };
+        });
+        setHypotheses(converted);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleHypothesisChange = (index: number, updatedHypothesis: Hypothesis) => {
     const newHypotheses = [...hypotheses];
     newHypotheses[index] = updatedHypothesis;
     setHypotheses(newHypotheses);
+
+    // If saving (edit mode toggled off), persist to API
+    const wasEditing = hypotheses[index].editMode;
+    const nowEditing = updatedHypothesis.editMode;
+    const savedField = (Object.keys(wasEditing) as Array<keyof typeof wasEditing>).find(
+      (k) => wasEditing[k] && !nowEditing[k]
+    );
+    if (savedField && apiHypotheses[index]) {
+      const h = apiHypotheses[index];
+      const newText = `If ${updatedHypothesis.current.if}, then ${updatedHypothesis.current.then}`;
+      const newConfig = {
+        ...(h.experiment_config || {}),
+        variant_a: updatedHypothesis.current.variantA,
+        variant_b: updatedHypothesis.current.variantB,
+      };
+      apiUpdateHypothesis(h.id, {
+        hypothesis_text: newText,
+        experiment_config: newConfig,
+      }).catch(() => {});
+    }
   };
 
-  const sampleData = [
-    {
-      title: 'Hypothesis 1',
-      primaryMetric: 'conversion-rate',
-      secondaryMetric: 'time-to-completion',
-      impactPercentage: 92,
-      impactLevel: 'High' as const,
-      inspiration:
-        'Appcues blog — "Checklists provide an explicit list of tasks for the user to complete."',
-    },
-    {
-      title: 'Hypothesis 2',
-      primaryMetric: 'completion-rate',
-      secondaryMetric: 'support-tickets',
-      impactPercentage: 64,
-      impactLevel: 'Medium' as const,
-      inspiration:
-        'Nielsen Norman Group — "Reducing cognitive load improves user experience and completion rates."',
-    },
-    {
-      title: 'Hypothesis 3',
-      primaryMetric: 'user-satisfaction',
-      secondaryMetric: 'feature-adoption',
-      impactPercentage: 35,
-      impactLevel: 'Low' as const,
-      inspiration:
-        'UX Planet — "Contextual help reduces user frustration and increases feature discovery."',
-    },
-  ];
+  const sampleMetadata = apiHypotheses.map((h, i) => ({
+    title: `Hypothesis ${i + 1}`,
+    primaryMetric: getMetricFromConfig(h.experiment_config, 'primary_metric'),
+    secondaryMetric: getMetricFromConfig(h.experiment_config, 'secondary_metric'),
+    impactPercentage: h.confidence_score ? Math.round(h.confidence_score * 100) : 50,
+    impactLevel: getImpactLevel(h.confidence_score),
+    inspiration: h.cluster_label
+      ? `Based on analysis of "${h.cluster_label}" pain point cluster`
+      : 'Generated from ticket analysis',
+  }));
+
+  if (loading) {
+    return (
+      <Dashboard>
+        <div className="flex items-center justify-center h-64 text-gray-400">Loading hypotheses...</div>
+      </Dashboard>
+    );
+  }
+
+  if (error) {
+    return (
+      <Dashboard>
+        <div className="flex flex-col gap-5">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/' },
+              { label: 'Pain points details', href: '/painpoints' },
+              { label: 'Hypothesis', isActive: true },
+            ]}
+          />
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            Failed to load hypotheses: {error}
+          </div>
+        </div>
+      </Dashboard>
+    );
+  }
 
   return (
     <Dashboard>
@@ -129,7 +152,7 @@ export default function Hypothesis() {
             Test Hypothesis
           </p>
           <p className="font-medium text-sm tracking-[0.5%] leading-[16px] text-neutral-800">
-            Generated for: Onboarding process too confusing
+            {apiHypotheses.length} hypotheses generated from pain point analysis
           </p>
         </div>
         <div className="flex flex-col gap-5">
@@ -137,12 +160,12 @@ export default function Hypothesis() {
             <HypothesisContainer
               key={index}
               hypothesis={hypothesis}
-              title={sampleData[index].title}
-              primaryMetric={sampleData[index].primaryMetric}
-              secondaryMetric={sampleData[index].secondaryMetric}
-              impactPercentage={sampleData[index].impactPercentage}
-              impactLevel={sampleData[index].impactLevel}
-              inspiration={sampleData[index].inspiration}
+              title={sampleMetadata[index]?.title || `Hypothesis ${index + 1}`}
+              primaryMetric={sampleMetadata[index]?.primaryMetric || 'conversion-rate'}
+              secondaryMetric={sampleMetadata[index]?.secondaryMetric || 'time-to-completion'}
+              impactPercentage={sampleMetadata[index]?.impactPercentage || 50}
+              impactLevel={sampleMetadata[index]?.impactLevel || 'Medium'}
+              inspiration={sampleMetadata[index]?.inspiration || 'Generated from analysis'}
               onHypothesisChange={(updatedHypothesis) =>
                 handleHypothesisChange(index, updatedHypothesis)
               }

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --no-install next build:*)",
+      "Bash(docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(docker compose up:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(bash verify-system.sh:*)",
+      "Bash(docker compose stop:*)",
+      "Bash(docker compose rm:*)"
+    ]
+  }
+}

@@ -13,6 +13,7 @@ import {
   IconLayoutDashboard,
   IconSparkles,
   IconTool,
+  IconTicket,
 } from '@tabler/icons-react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       ),
     },
     {
+      label: 'Tickets',
+      href: '/tickets',
+      icon: <IconTicket className="h-5.5 w-5.5 shrink-0 text-primary" />,
+    },
+    {
       label: 'Painpoints',
       href: '/painpoints',
       icon: <IconTool className="h-5.5 w-5.5 shrink-0 text-primary" />,
@@ -65,7 +71,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   // Find the active link based on current pathname
   const getActiveLinkIndex = () => {
-    return links.findIndex((link) => link.href === pathname);
+    if (pathname === '/') return links.findIndex((link) => link.href === '/');
+    return links.findIndex((link) => link.href !== '/' && pathname.startsWith(link.href));
   };
 
   const activeLink = getActiveLinkIndex();
