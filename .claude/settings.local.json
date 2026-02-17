@@ -20,7 +20,9 @@
       "Bash(docker-compose restart:*)",
       "Bash(docker ps:*)",
       "Bash(docker stop:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
