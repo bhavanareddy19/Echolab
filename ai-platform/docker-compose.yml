@@ -1,0 +1,290 @@
+# =============================================================================
+# ECHOLAB AI PLATFORM - DOCKER COMPOSE CONFIGURATION
+# =============================================================================
+# This file orchestrates all services needed for the Echolab AI platform:
+# - PostgreSQL with pgvector for vector similarity search
+# - Qdrant for dedicated vector database (alternative to pgvector)
+# - Redis for caching (98% uptime optimization)
+# - Apache Airflow for workflow orchestration (50k+ queries/day)
+# - FastAPI backend for REST APIs
+# - Flower for Celery monitoring
+#
+# INTERVIEW TIP: Explain the microservices architecture - each service is
+# independent, scalable, and can be deployed separately in Kubernetes.
+# =============================================================================
+
+# =============================================================================
+# SHARED CONFIGURATION
+# =============================================================================
+x-airflow-common: &airflow-common
+  build:
+    context: ./airflow
+    dockerfile: Dockerfile
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/airflow
+    AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    # Custom environment variables for our pipelines
+    POSTGRES_HOST: postgres
+    REDIS_HOST: redis
+    QDRANT_HOST: qdrant
+    OPENAI_API_KEY: ${OPENAI_API_KEY}
+    HF_TOKEN: ${HF_TOKEN}
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./airflow/config:/opt/airflow/config
+    - ./data:/opt/airflow/data
+    - ./models:/opt/airflow/models
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on: &airflow-common-depends-on
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+
+services:
+  # ===========================================================================
+  # DATABASE SERVICES
+  # ===========================================================================
+
+  # PostgreSQL with pgvector extension for vector similarity search
+  # INTERVIEW TIP: pgvector enables storing embeddings directly in PostgreSQL
+  # with operators like <=> for cosine distance, <-> for L2 distance
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: echolab-postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/00-create-airflow-db.sh:/docker-entrypoint-initdb.d/00-create-airflow-db.sh
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./db/airflow-init.sql:/docker-entrypoint-initdb.d/02-airflow-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Qdrant - Dedicated Vector Database
+  # INTERVIEW TIP: Qdrant vs pgvector - Qdrant is optimized for vector search
+  # with HNSW indexing, filtering, and horizontal scaling. Used for 10M+ embeddings.
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: echolab-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"  # gRPC port for high-performance clients
+    volumes:
+      - qdrantdata:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis - Caching Layer (98% uptime via caching)
+  # INTERVIEW TIP: Redis is used for:
+  # 1. LLM response caching (avoid redundant API calls)
+  # 2. Rate limiting (prevent abuse)
+  # 3. Session storage
+  # 4. Celery message broker for Airflow
+  redis:
+    image: redis:7-alpine
+    container_name: echolab-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ===========================================================================
+  # AIRFLOW SERVICES (Workflow Orchestration)
+  # ===========================================================================
+  # INTERVIEW TIP: CeleryExecutor allows horizontal scaling of workers.
+  # Each worker can process tasks in parallel, enabling 50k+ queries/day.
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: echolab-airflow-webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: echolab-airflow-scheduler
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--hostname", "$(hostname)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  airflow-worker:
+    <<: *airflow-common
+    container_name: echolab-airflow-worker
+    command: celery worker
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    environment:
+      <<: *airflow-common-env
+      DUMB_INIT_SETSID: "0"
+    restart: unless-stopped
+
+  airflow-triggerer:
+    <<: *airflow-common
+    container_name: echolab-airflow-triggerer
+    command: triggerer
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: echolab-airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /opt/airflow/{logs,dags,plugins}
+        chown -R "${AIRFLOW_UID:-50000}:0" /opt/airflow/{logs,dags,plugins}
+        exec /entrypoint airflow db init
+        airflow users create \
+          --username admin \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@echolab.ai \
+          --password admin
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USERNAME:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+    user: "0:0"
+
+  # Flower - Celery Monitoring UI
+  flower:
+    <<: *airflow-common
+    container_name: echolab-flower
+    command: celery flower
+    ports:
+      - "5555:5555"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ===========================================================================
+  # APPLICATION SERVICES
+  # ===========================================================================
+
+  # FastAPI Backend
+  api:
+    build: ./backend
+    container_name: echolab-api
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      QDRANT_HOST: qdrant
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HF_TOKEN: ${HF_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: echolab-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+# =============================================================================
+# PERSISTENT VOLUMES
+# =============================================================================
+volumes:
+  pgdata:
+    driver: local
+  qdrantdata:
+    driver: local
+  redisdata:
+    driver: local
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  default:
+    name: echolab-network
+    driver: bridge

@@ -1,0 +1,13 @@
+# =============================================================================
+# KUBERNETES NAMESPACE
+# =============================================================================
+# INTERVIEW TIP: Namespaces provide isolation between environments.
+# We use separate namespaces for dev, staging, and production.
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: echolab
+  labels:
+    app: echolab
+    env: production
