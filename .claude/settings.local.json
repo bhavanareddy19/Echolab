@@ -3,7 +3,9 @@
     "allow": [
       "Bash(docker info:*)",
       "Bash(docker compose up:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)"
     ]
   }
 }
