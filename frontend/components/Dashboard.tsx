@@ -13,6 +13,7 @@ import {
   IconLayoutDashboard,
   IconSparkles,
   IconTool,
+  IconTicket,
 } from '@tabler/icons-react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       icon: (
         <IconLayoutDashboard className="h-5.5 w-5.5 shrink-0 text-primary" />
       ),
+    },
+    {
+      label: 'Tickets',
+      href: '/tickets',
+      icon: <IconTicket className="h-5.5 w-5.5 shrink-0 text-primary" />,
     },
     {
       label: 'Painpoints',

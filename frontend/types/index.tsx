@@ -83,5 +83,9 @@ export interface HypothesisContainerProps {
   impactPercentage: number;
   impactLevel: 'High' | 'Medium' | 'Low';
   inspiration: string;
+  status: string;
   onHypothesisChange: (updatedHypothesis: Hypothesis) => void;
+  onPushToExperiment: () => void;
+  onSaveToApi: () => void;
+  saving?: boolean;
 }

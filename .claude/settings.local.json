@@ -5,7 +5,14 @@
       "Bash(docker compose up:*)",
       "Bash(docker exec:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next build:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(python3 -m json.tool:*)"
     ]
   }
 }

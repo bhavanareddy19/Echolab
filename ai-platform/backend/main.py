@@ -456,6 +456,7 @@ def list_clusters():
                        COUNT(ct.id) as actual_ticket_count
                 FROM analytics.clusters cl
                 LEFT JOIN core.tickets ct ON ct.cluster_id = cl.id
+                WHERE cl.cluster_label != 'Unlabeled Cluster'
                 GROUP BY cl.id
                 ORDER BY cl.num_tickets DESC
             """)

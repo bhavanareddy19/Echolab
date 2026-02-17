@@ -31,10 +31,18 @@ x-airflow-common: &airflow-common
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     # Custom environment variables for our pipelines
     POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    POSTGRES_DB: ${POSTGRES_DB}
     REDIS_HOST: redis
+    REDIS_PORT: 6379
     QDRANT_HOST: qdrant
+    QDRANT_PORT: 6333
     OPENAI_API_KEY: ${OPENAI_API_KEY}
     HF_TOKEN: ${HF_TOKEN}
+    GROWTHBOOK_API_URL: ${GROWTHBOOK_API_URL}
+    GROWTHBOOK_PAT: ${GROWTHBOOK_PAT}
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
@@ -93,7 +101,7 @@ services:
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/readiness"]
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/localhost/6333'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -232,8 +240,14 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       REDIS_HOST: redis
+      REDIS_PORT: 6379
       QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       HF_TOKEN: ${HF_TOKEN}
     depends_on:
@@ -256,13 +270,17 @@ services:
     restart: unless-stopped
 
   # Next.js Frontend
+  # NOTE: NEXT_PUBLIC_API_URL must point to localhost because the browser
+  # makes client-side API calls and cannot resolve Docker container names.
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
     container_name: echolab-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://api:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
     depends_on:
       api:
         condition: service_healthy

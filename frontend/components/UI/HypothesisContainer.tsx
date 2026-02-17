@@ -18,7 +18,11 @@ export default function HypothesisContainer({
   impactPercentage,
   impactLevel,
   inspiration,
+  status,
   onHypothesisChange,
+  onPushToExperiment,
+  onSaveToApi,
+  saving,
 }: HypothesisContainerProps) {
   const [selectedMetric, setSelectedMetric] = useState(primaryMetric);
   const [selectedSecondaryMetric, setSelectedSecondaryMetric] =
@@ -26,16 +30,27 @@ export default function HypothesisContainer({
   const { setIsEditing } = useEditMode();
 
   const metrics = [
+    { value: 'checkout_completion_rate', label: 'Checkout Completion Rate' },
     { value: 'conversion-rate', label: 'Conversion Rate' },
     { value: 'completion-rate', label: 'Completion Rate' },
+    { value: 'time_to_complete', label: 'Time to Complete' },
     { value: 'time-to-completion', label: 'Time to Completion' },
+    { value: 'page_load_time', label: 'Page Load Time' },
+    { value: 'cart_abandonment_rate', label: 'Cart Abandonment Rate' },
     { value: 'cart-abandonment', label: 'Cart Abandonment' },
+    { value: 'user_satisfaction_score', label: 'User Satisfaction Score' },
     { value: 'user-satisfaction', label: 'User Satisfaction' },
-    { value: 'return-visits', label: 'Return Visits' },
-    { value: 'page-load-time', label: 'Page Load Time' },
+    { value: 'export_success_rate', label: 'Export Success Rate' },
+    { value: 'export_completion_time', label: 'Export Completion Time' },
+    { value: 'auth_support_tickets', label: 'Auth Support Tickets' },
+    { value: 'session_duration', label: 'Session Duration' },
+    { value: 'mobile_task_completion', label: 'Mobile Task Completion' },
+    { value: 'mobile_bounce_rate', label: 'Mobile Bounce Rate' },
+    { value: 'items_per_checkout', label: 'Items Per Checkout' },
     { value: 'support-tickets', label: 'Support Tickets' },
     { value: 'user-engagement', label: 'User Engagement' },
     { value: 'feature-adoption', label: 'Feature Adoption' },
+    { value: 'return-visits', label: 'Return Visits' },
   ];
 
   const isAnyFieldInEditMode = Object.values(hypothesis.editMode).some(Boolean);
@@ -120,6 +135,15 @@ export default function HypothesisContainer({
     }
   };
 
+  const getStatusBadge = (s: string) => {
+    switch (s) {
+      case 'experiment': return 'border-[#5927FF] text-[#5927FF] bg-[#F1F3FF]';
+      case 'testing': return 'border-[#FFE4B6] text-[#F09800] bg-[#FFFBE3]';
+      case 'completed': return 'border-success text-success bg-success';
+      default: return 'border-[#E8E8E8] text-[#7F7F7F] bg-[#F6F6F6]';
+    }
+  };
+
   return (
     <div className="bg-primary p-4 rounded-xl flex flex-col gap-7.5">
       <div className="flex justify-between items-center">
@@ -132,14 +156,24 @@ export default function HypothesisContainer({
           <p className="font-semibold text-xl tracking-[0.5%] leading-[22px]">
             {title}
           </p>
+          <span className={`ml-2 px-2.5 py-1 rounded-lg border text-xs font-medium ${getStatusBadge(status)}`}>
+            {status}
+          </span>
         </div>
-        <div
-          className={`py-2.5 px-3 font-medium text-sm tracking-[0.5%] leading-[16px] rounded-lg transition-colors duration-200 border ${
-            hypothesis.checked
-              ? 'border-brand-color text-[#5927ff] bg-[#F1F3FF]'
-              : 'disabled-brand-color text-neutral-200 border-[#BEC2E5]'
-          }`}>
-          Push to GrowthBook
+        <div className="flex gap-2">
+          {status !== 'experiment' && status !== 'testing' && (
+            <button
+              onClick={onPushToExperiment}
+              className="py-2.5 px-3 font-medium text-sm tracking-[0.5%] leading-[16px] rounded-lg transition-colors duration-200 border border-[#5927FF] text-[#5927FF] bg-[#F1F3FF] hover:bg-[#E0E4FF] cursor-pointer">
+              Push to Experiment
+            </button>
+          )}
+          <button
+            onClick={onSaveToApi}
+            disabled={saving}
+            className="py-2.5 px-3 font-medium text-sm tracking-[0.5%] leading-[16px] rounded-lg transition-colors duration-200 border border-[#E8E8E8] bg-white hover:bg-[#F6F6F6] cursor-pointer disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
 
@@ -149,7 +183,6 @@ export default function HypothesisContainer({
             <RiLightbulbFlashLine className="w-4.5 h-4.5" />
           </div>
           <div className="flex flex-col w-full gap-1.5">
-            {/* IF Row */}
             <div className="flex gap-2.5 items-center">
               <div className="font-semibold text-[16px] w-[50px] tracking-[0.5%] leading-[18px] text-[#5927FF]">
                 IF
@@ -160,8 +193,6 @@ export default function HypothesisContainer({
                 field="if"
               />
             </div>
-
-            {/* THEN Row */}
             <div className="flex gap-2.5 items-center">
               <div className="font-semibold text-[16px] w-[50px] tracking-[0.5%] leading-[18px] text-[#5927FF]">
                 THEN
@@ -174,49 +205,27 @@ export default function HypothesisContainer({
             </div>
           </div>
         </div>
-
-        {/* Edit/Save Controls */}
         <EditControls
           onSave={() => {
             const updatedHypothesis = {
               ...hypothesis,
-              editMode: {
-                ...hypothesis.editMode,
-                if: false,
-                then: false,
-              },
-              current: {
-                ...hypothesis.current,
-                if: hypothesis.temp.if,
-                then: hypothesis.temp.then,
-              },
+              editMode: { ...hypothesis.editMode, if: false, then: false },
+              current: { ...hypothesis.current, if: hypothesis.temp.if, then: hypothesis.temp.then },
             };
             onHypothesisChange(updatedHypothesis);
           }}
           onCancel={() => {
             const updatedHypothesis = {
               ...hypothesis,
-              editMode: {
-                ...hypothesis.editMode,
-                if: false,
-                then: false,
-              },
+              editMode: { ...hypothesis.editMode, if: false, then: false },
             };
             onHypothesisChange(updatedHypothesis);
           }}
           onEdit={() => {
             const updatedHypothesis = {
               ...hypothesis,
-              editMode: {
-                ...hypothesis.editMode,
-                if: true,
-                then: true,
-              },
-              temp: {
-                ...hypothesis.temp,
-                if: hypothesis.current.if,
-                then: hypothesis.current.then,
-              },
+              editMode: { ...hypothesis.editMode, if: true, then: true },
+              temp: { ...hypothesis.temp, if: hypothesis.current.if, then: hypothesis.current.then },
             };
             onHypothesisChange(updatedHypothesis);
           }}
@@ -235,61 +244,29 @@ export default function HypothesisContainer({
               <div className="bg-[#E8E8E8] font-bold text-xs tracking-[0.5%] leading-[16px] rounded-[6px] w-6 h-6 flex items-center justify-center">
                 A
               </div>
-              <TextArea
-                hypothesis={hypothesis}
-                handleChange={handleChange}
-                field="variantA"
-              />
+              <TextArea hypothesis={hypothesis} handleChange={handleChange} field="variantA" />
             </div>
             <div>
-              <EditControls
-                onSave={() => onSave('variantA')}
-                onCancel={() => onCancel('variantA')}
-                onEdit={() => onEdit('variantA')}
-                editMode={hypothesis.editMode.variantA}
-                field="variantA"
-              />
+              <EditControls onSave={() => onSave('variantA')} onCancel={() => onCancel('variantA')} onEdit={() => onEdit('variantA')} editMode={hypothesis.editMode.variantA} field="variantA" />
             </div>
           </div>
-
           <div className="flex items-center justify-between py-1 px-3 bg-[#F6F6F6] rounded-[12px] gap-3">
             <div className="flex gap-1.5 items-center w-full">
               <div className="bg-[#E8E8E8] font-bold text-xs tracking-[0.5%] leading-[16px] rounded-[6px] w-6 h-6 flex items-center justify-center">
                 B
               </div>
-              <TextArea
-                hypothesis={hypothesis}
-                handleChange={handleChange}
-                field="variantB"
-              />
+              <TextArea hypothesis={hypothesis} handleChange={handleChange} field="variantB" />
             </div>
             <div>
-              <EditControls
-                onSave={() => onSave('variantB')}
-                onCancel={() => onCancel('variantB')}
-                onEdit={() => onEdit('variantB')}
-                editMode={hypothesis.editMode.variantB}
-                field="variantB"
-              />
+              <EditControls onSave={() => onSave('variantB')} onCancel={() => onCancel('variantB')} onEdit={() => onEdit('variantB')} editMode={hypothesis.editMode.variantB} field="variantB" />
             </div>
           </div>
         </div>
       </div>
 
       <div className="w-full flex gap-4">
-        <DropdownInput
-          label="Primary Metric"
-          value={selectedMetric}
-          onChange={setSelectedMetric}
-          options={metrics}
-        />
-
-        <DropdownInput
-          label="Secondary Metric"
-          value={selectedSecondaryMetric}
-          onChange={setSelectedSecondaryMetric}
-          options={metrics}
-        />
+        <DropdownInput label="Primary Metric" value={selectedMetric} onChange={setSelectedMetric} options={metrics} />
+        <DropdownInput label="Secondary Metric" value={selectedSecondaryMetric} onChange={setSelectedSecondaryMetric} options={metrics} />
       </div>
 
       <div className="flex flex-col gap-4 w-1/2">
@@ -301,22 +278,15 @@ export default function HypothesisContainer({
             <div className="font-normal text-[14px] tracking-[0.5%] leading-[16px]">
               {impactPercentage}%
             </div>
-            <div
-              className={`flex items-center border rounded-[8px] p-1.5 gap-1.5 w-fit ${getImpactColor(
-                impactLevel
-              )}`}>
-              <div
-                className={`text-[10px] font-medium tracking-[0.5%] leading-2.5`}>
+            <div className={`flex items-center border rounded-[8px] p-1.5 gap-1.5 w-fit ${getImpactColor(impactLevel)}`}>
+              <div className="text-[10px] font-medium tracking-[0.5%] leading-2.5">
                 {impactLevel}
               </div>
             </div>
           </div>
         </div>
         <div className="w-full h-1.5 bg-[#E8E8E8] rounded-full">
-          <div
-            className="brand-gradient h-full rounded-full"
-            style={{ width: `${impactPercentage}%` }}
-          />
+          <div className="brand-gradient h-full rounded-full" style={{ width: `${impactPercentage}%` }} />
         </div>
       </div>
 
