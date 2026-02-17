@@ -8,7 +8,10 @@
       "Bash(python -m json.tool:*)",
       "Bash(bash verify-system.sh:*)",
       "Bash(docker compose stop:*)",
-      "Bash(docker compose rm:*)"
+      "Bash(docker compose rm:*)",
+      "Bash(git merge:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
