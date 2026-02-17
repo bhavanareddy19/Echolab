@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${mavenPro.variable} ${inter.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${mavenPro.variable} ${inter.variable}`} suppressHydrationWarning>
         {children}
       </body>
     </html>
