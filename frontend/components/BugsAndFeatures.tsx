@@ -1,22 +1,53 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchDashboardStats, type DashboardStats } from '@/lib/api';
+import { fetchDashboardStats, DashboardStats } from '@/lib/api';
 
 export default function BugsAndFeatures() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardStats()
       .then(setStats)
-      .catch(() => {});
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
-  const features = stats?.features ?? 0;
-  const bugs = stats?.bugs ?? 0;
-  const statusBreakdown = stats?.status_breakdown ?? {};
-  const inProgress = statusBreakdown['In Progress'] ?? 0;
-  const open = statusBreakdown['Open'] ?? 0;
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="text-black text-xl font-semibold leading-[22px] tracking-[0.5%]">
+          Bugs and Features
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="w-full flex justify-between items-center bg-primary rounded-[8px] py-4 px-3 animate-pulse">
+              <div className="h-20 bg-gray-200 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="text-black text-xl font-semibold leading-[22px] tracking-[0.5%]">
+          Bugs and Features
+        </div>
+        <div className="text-red-500 text-sm">{error || 'Failed to load stats'}</div>
+      </div>
+    );
+  }
+
+  const featureTotal = stats.features;
+  const bugTotal = stats.bugs;
+  const improvementTotal = stats.improvements;
+  const changeText = stats.change_vs_last_month;
+  const isPositiveChange = !changeText?.startsWith('-');
 
   return (
     <div className="flex flex-col gap-5">
@@ -30,14 +61,18 @@ export default function BugsAndFeatures() {
             <p className="text-[#7F7F7F] text-sm font-semibold leading-[16px] tracking-[0.5%]">
               Features
             </p>
-            <div className="rounded-[8px] border border-success bg-success p-1.5 text-[10px] leading-[12px] tracking-[0.5%] font-medium text-success">
-              {stats ? `${features} classified` : 'Loading...'}
+            <div className={`rounded-[8px] border p-1.5 text-[10px] leading-[12px] tracking-[0.5%] font-medium ${
+              isPositiveChange
+                ? 'border-success bg-success text-success'
+                : 'border-[#FFDCDC] bg-[#FFF2F2] text-[#F71111]'
+            }`}>
+              {changeText} vs last month
             </div>
           </div>
-          <div className="flex flex-row items-center justify-between gap-4 ">
+          <div className="flex flex-row items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5">
               <p className="text-black text-2xl font-semibold leading-[26px] tracking-[0.5%]">
-                {features}
+                {featureTotal}
               </p>
               <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
                 total
@@ -46,7 +81,7 @@ export default function BugsAndFeatures() {
             <div className="w-[1px] h-12 bg-[#E8E8E8]" />
             <div className="flex flex-col gap-1.5">
               <p className="text-black text-2xl font-semibold leading-[26px] tracking-[0.5%]">
-                {stats?.improvements ?? 0}
+                {improvementTotal}
               </p>
               <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
                 improvements
@@ -62,34 +97,25 @@ export default function BugsAndFeatures() {
               Bugs
             </p>
             <div className="rounded-[8px] border border-[#FFDCDC] bg-[#FFF2F2] p-1.5 text-[10px] leading-[12px] tracking-[0.5%] font-medium text-[#F71111]">
-              {stats ? `${bugs} identified` : 'Loading...'}
+              {bugTotal} reported
             </div>
           </div>
-          <div className="flex flex-row items-center justify-between gap-4 ">
+          <div className="flex flex-row items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5">
               <p className="text-black text-2xl font-semibold leading-[26px] tracking-[0.5%]">
-                {bugs}
+                {bugTotal}
               </p>
               <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
-                total
+                total bugs
               </p>
             </div>
             <div className="w-[1px] h-12 bg-[#E8E8E8]" />
             <div className="flex flex-col gap-1.5">
               <p className="text-black text-2xl font-semibold leading-[26px] tracking-[0.5%]">
-                {inProgress}
+                {stats.classified_count}
               </p>
               <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
-                in progress
-              </p>
-            </div>
-            <div className="w-[1px] h-12 bg-[#E8E8E8]" />
-            <div className="flex flex-col gap-1.5">
-              <p className="text-black text-2xl font-semibold leading-[26px] tracking-[0.5%]">
-                {open}
-              </p>
-              <p className="text-[#7F7F7F] text-xs tracking-[0.5%] leading-[14px] font-normal">
-                open
+                classified
               </p>
             </div>
           </div>

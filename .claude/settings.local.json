@@ -1,16 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx --no-install next build:*)",
-      "Bash(docker exec:*)",
-      "Bash(curl:*)",
+      "Bash(docker info:*)",
       "Bash(docker compose up:*)",
-      "Bash(python -m json.tool:*)",
-      "Bash(bash verify-system.sh:*)",
-      "Bash(docker compose stop:*)",
-      "Bash(docker compose rm:*)",
-      "Bash(git merge:*)",
+      "Bash(docker exec:*)",
+      "Bash(git push:*)",
       "Bash(git add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next build:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec:*)",
+      "Bash(curl:*)",
+      "Bash(python3 -m json.tool:*)",
+      "Bash(docker-compose stop:*)",
+      "Bash(docker-compose rm:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker stop:*)",
+      "Bash(where:*)",
+      "Bash(git checkout:*)",
       "Bash(git commit:*)"
     ]
   }

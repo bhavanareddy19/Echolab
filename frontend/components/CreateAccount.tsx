@@ -20,10 +20,13 @@ export default function CreateAccount() {
   const [dataRange, setDataRange] = useState('30-days');
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const router = useRouter();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     // Validate step 1 fields
@@ -41,7 +44,7 @@ export default function CreateAccount() {
 
     if (Object.keys(newErrors).length === 0) {
       setErrors({});
-      setCurrentStep(2);
+      setIsSubmitting(true);
 
       const formData = new FormData();
       formData.append('email', email);
@@ -51,16 +54,27 @@ export default function CreateAccount() {
       formData.append('companyName', companyName);
       formData.append('role', role);
 
-      // API call to create user
+      try {
+        // API call to create user in Supabase Auth
+        const { status } = await signUp(formData);
+        console.log('SignUp response:', status);
 
-      // const { status } = await signUp(formData);
-      // if (status === 'User created successfully') {
-      //   router.push('/');
-      // } else {
-      //   setErrors({
-      //     email: status,
-      //   });
-      // }
+        if (status === 'User created successfully') {
+          // Only advance to step 2 after successful signup
+          setCurrentStep(2);
+        } else {
+          setErrors({
+            email: status || 'Signup failed. Please try again.',
+          });
+        }
+      } catch (error) {
+        console.error('SignUp error:', error);
+        setErrors({
+          email: 'An unexpected error occurred. Please try again.',
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -85,8 +99,13 @@ export default function CreateAccount() {
 
   const handleStartSync = async () => {
     // API call to start sync (import data from Zendesk)
+    setIsSyncing(true);
 
-    setCurrentStep(3);
+    // Simulate sync process
+    setTimeout(() => {
+      setIsSyncing(false);
+      router.push('/');
+    }, 3000);
   };
 
   return (
@@ -279,10 +298,17 @@ export default function CreateAccount() {
               </div>
               <div
                 onClick={async () => {
-                  await handleSubmit();
+                  if (!isSubmitting) await handleSubmit();
                 }}
-                className="py-2 px-3 tracking-[0.5%] leading-[16px] rounded-lg font-medium text-sm cursor-pointer w-18 text-center text-white brand-gradient transition-transform duration-200 hover:scale-105">
-                Next
+                className={`py-2 px-3 tracking-[0.5%] leading-[16px] rounded-lg font-medium text-sm w-18 text-center text-white brand-gradient transition-transform duration-200 ${isSubmitting ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer hover:scale-105'
+                  }`}>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  </div>
+                ) : (
+                  'Next'
+                )}
               </div>
             </div>
           </>
@@ -322,11 +348,10 @@ export default function CreateAccount() {
                 onClick={() => {
                   handleConnectZendesk();
                 }}
-                className={`text-white text-sm font-medium tracking-[0.5%] leading-[16px] rounded-lg px-3 py-2.5 w-full text-center transition-transform duration-200 ${
-                  isConnected
-                    ? ''
-                    : 'brand-gradient cursor-pointer hover:scale-102'
-                }`}>
+                className={`text-white text-sm font-medium tracking-[0.5%] leading-[16px] rounded-lg px-3 py-2.5 w-full text-center transition-transform duration-200 ${isConnected
+                  ? ''
+                  : 'brand-gradient cursor-pointer hover:scale-102'
+                  }`}>
                 {isConnecting ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -393,9 +418,19 @@ export default function CreateAccount() {
             </div>
 
             <div
-              onClick={() => handleStartSync()}
-              className="brand-gradient text-white text-sm font-medium tracking-[0.5%] leading-[16px] rounded-lg px-3 py-2.5 w-full text-center cursor-pointer transition-transform duration-200 hover:scale-102">
-              Start Sync
+              onClick={() => !isSyncing && handleStartSync()}
+              className={`text-white text-sm font-medium tracking-[0.5%] leading-[16px] rounded-lg px-3 py-2.5 w-full text-center transition-transform duration-200 ${isSyncing
+                ? 'opacity-80 cursor-not-allowed brand-gradient'
+                : 'brand-gradient cursor-pointer hover:scale-102'
+                }`}>
+              {isSyncing ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  <span>Syncing...</span>
+                </div>
+              ) : (
+                'Start Sync'
+              )}
             </div>
           </div>
         )}

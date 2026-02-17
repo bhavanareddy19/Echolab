@@ -120,7 +120,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 className="px-1"
                 active={false}
                 link={{
-                  label: 'John Doe',
+                  label: 'Profile',
                   href: '/profile',
                   icon: (
                     <Image
