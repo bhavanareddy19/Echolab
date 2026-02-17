@@ -1,6 +1,5 @@
 'use client';
 
-import { Checkbox } from '@/components/UI/checkbox';
 import { RiLightbulbFlashLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import EditControls from './EditControls';
@@ -114,14 +113,6 @@ export default function HypothesisContainer({
     onHypothesisChange(updatedHypothesis);
   };
 
-  const handleCheckboxChange = (checked: boolean) => {
-    const updatedHypothesis = {
-      ...hypothesis,
-      checked,
-    };
-    onHypothesisChange(updatedHypothesis);
-  };
-
   const getImpactColor = (level: string) => {
     switch (level) {
       case 'High':
@@ -147,16 +138,11 @@ export default function HypothesisContainer({
   return (
     <div className="bg-primary p-4 rounded-xl flex flex-col gap-7.5">
       <div className="flex justify-between items-center">
-        <div className="flex gap-2 justify-center items-center">
-          <Checkbox
-            checked={hypothesis.checked}
-            onCheckedChange={(value) => handleCheckboxChange(!!value)}
-            className="data-[state=checked]:border-[#6750a4] data-[state=checked]:bg-[#6750a4] data-[state=checked]:text-white rounded-xs border-[1.5px] border-[#7F7F7F]"
-          />
+        <div className="flex gap-2 items-center">
           <p className="font-semibold text-xl tracking-[0.5%] leading-[22px]">
             {title}
           </p>
-          <span className={`ml-2 px-2.5 py-1 rounded-lg border text-xs font-medium ${getStatusBadge(status)}`}>
+          <span className={`px-2.5 py-1 rounded-lg border text-xs font-medium ${getStatusBadge(status)}`}>
             {status}
           </span>
         </div>

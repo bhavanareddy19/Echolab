@@ -259,44 +259,23 @@ export default function HypothesisPage() {
               const config = apiH?.experiment_config || {};
 
               return (
-                <div key={apiH?.id ?? index} className="relative">
-                  <HypothesisContainer
-                    hypothesis={hypothesis}
-                    title={`Hypothesis ${index + 1}${apiH?.cluster_label ? ` — ${apiH.cluster_label}` : ''}`}
-                    primaryMetric={config.primary_metric || 'conversion-rate'}
-                    secondaryMetric={config.secondary_metric || 'user-satisfaction'}
-                    impactPercentage={Math.round(confidenceScore * 100)}
-                    impactLevel={impactLevel}
-                    inspiration={apiH?.cluster_label ? `Generated from pain point: ${apiH.cluster_label}` : 'AI-generated hypothesis'}
-                    onHypothesisChange={(updatedHypothesis) =>
-                      handleHypothesisChange(index, updatedHypothesis)
-                    }
-                  />
-                  <div className="flex gap-2 mt-2 justify-end">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      apiH?.status === 'experiment' || apiH?.status === 'testing'
-                        ? 'bg-[#F1F3FF] text-[#5927FF]'
-                        : apiH?.status === 'draft'
-                        ? 'bg-[#F6F6F6] text-[#7F7F7F]'
-                        : 'bg-success text-success'
-                    }`}>
-                      {apiH?.status || 'draft'}
-                    </span>
-                    <button
-                      onClick={() => handleSaveToApi(index)}
-                      disabled={saving === index}
-                      className="px-3 py-1 text-xs bg-[#E8E8E8] rounded hover:bg-[#d0d0d0] transition-colors disabled:opacity-50">
-                      {saving === index ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    {apiH?.status === 'draft' && (
-                      <button
-                        onClick={() => handlePushToExperiment(index)}
-                        className="px-3 py-1 text-xs bg-[#5927FF] text-white rounded hover:bg-[#4a1fd9] transition-colors">
-                        Push to Experiment
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <HypothesisContainer
+                  key={apiH?.id ?? index}
+                  hypothesis={hypothesis}
+                  title={`Hypothesis ${index + 1}${apiH?.cluster_label ? ` — ${apiH.cluster_label}` : ''}`}
+                  primaryMetric={config.primary_metric || 'conversion-rate'}
+                  secondaryMetric={config.secondary_metric || 'user-satisfaction'}
+                  impactPercentage={Math.round(confidenceScore * 100)}
+                  impactLevel={impactLevel}
+                  inspiration={apiH?.cluster_label ? `Generated from pain point: ${apiH.cluster_label}` : 'AI-generated hypothesis'}
+                  status={apiH?.status || 'draft'}
+                  onHypothesisChange={(updatedHypothesis) =>
+                    handleHypothesisChange(index, updatedHypothesis)
+                  }
+                  onPushToExperiment={() => handlePushToExperiment(index)}
+                  onSaveToApi={() => handleSaveToApi(index)}
+                  saving={saving === index}
+                />
               );
             })}
           </div>
