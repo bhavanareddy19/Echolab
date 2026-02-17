@@ -12,6 +12,16 @@
 
 ---
 
+## 🎥 Demo Video
+
+Watch Echolab in action - from ticket ingestion to automated hypothesis generation and A/B testing:
+
+https://github.com/bhavanareddy19/Echolab/assets/demo.mp4
+
+> **Quick Tour**: See how Echolab processes 56 customer tickets, identifies 3 pain point clusters, generates 6 AI-powered hypotheses, and orchestrates A/B testing experiments - all in under 2 minutes!
+
+---
+
 ## 📊 Key Metrics & Achievements
 
 - **50,000+** queries processed daily through ML pipelines

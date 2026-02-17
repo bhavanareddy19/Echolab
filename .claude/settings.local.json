@@ -16,7 +16,11 @@
       "Bash(docker-compose stop:*)",
       "Bash(docker-compose rm:*)",
       "Bash(docker-compose up:*)",
-      "Bash(docker-compose ps:*)"
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker stop:*)",
+      "Bash(where:*)"
     ]
   }
 }

@@ -497,15 +497,21 @@ def get_cluster(cluster_id: int):
 
 @app.get("/api/hypotheses")
 def list_hypotheses():
-    """List all hypotheses with cluster info."""
+    """List all hypotheses with cluster info and related ticket counts."""
     with pg_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("""
                 SELECT h.id, h.cluster_id, h.hypothesis_text, h.confidence_score,
                        h.expected_impact, h.experiment_config, h.status, h.created_at,
-                       cl.cluster_label
+                       cl.cluster_label,
+                       COUNT(t.id) FILTER (WHERE t.experiment_id = h.id) as linked_tickets,
+                       COUNT(t.id) FILTER (WHERE t.resolved_by_experiment = h.id) as resolved_tickets
                 FROM analytics.hypotheses h
                 LEFT JOIN analytics.clusters cl ON h.cluster_id = cl.id
+                LEFT JOIN core.tickets t ON t.cluster_id = h.cluster_id
+                GROUP BY h.id, h.cluster_id, h.hypothesis_text, h.confidence_score,
+                         h.expected_impact, h.experiment_config, h.status, h.created_at,
+                         cl.cluster_label
                 ORDER BY h.confidence_score DESC NULLS LAST
             """)
             hypotheses = cur.fetchall()
@@ -548,10 +554,15 @@ def create_hypothesis(hyp: HypothesisCreate):
 
 @app.put("/api/hypotheses/{hypothesis_id}")
 def update_hypothesis(hypothesis_id: int, update: HypothesisUpdate):
-    """Update a hypothesis."""
+    """Update a hypothesis and automatically link/resolve tickets based on status."""
     fields = []
     values = []
+    old_status = None
+    new_status = None
+
     for field_name, value in update.model_dump(exclude_none=True).items():
+        if field_name == "status":
+            new_status = value
         if field_name == "experiment_config" and value is not None:
             fields.append(f"{field_name} = %s")
             values.append(json.dumps(value))
@@ -564,14 +575,49 @@ def update_hypothesis(hypothesis_id: int, update: HypothesisUpdate):
 
     values.append(hypothesis_id)
     with pg_conn() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            # Get old status and cluster_id
+            cur.execute("""
+                SELECT status, cluster_id FROM analytics.hypotheses WHERE id = %s
+            """, (hypothesis_id,))
+            hypothesis = cur.fetchone()
+            if not hypothesis:
+                raise HTTPException(status_code=404, detail="Hypothesis not found")
+
+            old_status = hypothesis['status']
+            cluster_id = hypothesis['cluster_id']
+
+            # Update hypothesis
             cur.execute(f"""
                 UPDATE analytics.hypotheses SET {', '.join(fields)}
                 WHERE id = %s
             """, values)
-            if cur.rowcount == 0:
-                raise HTTPException(status_code=404, detail="Hypothesis not found")
+
+            # Auto-link tickets when status changes to 'experiment'
+            if new_status == 'experiment' and old_status != 'experiment' and cluster_id:
+                cur.execute("""
+                    UPDATE core.tickets
+                    SET experiment_id = %s
+                    WHERE cluster_id = %s AND experiment_id IS NULL
+                """, (hypothesis_id, cluster_id))
+                linked_count = cur.rowcount
+                print(f"Linked {linked_count} tickets to experiment {hypothesis_id}")
+
+            # Auto-resolve tickets when status changes to 'completed'
+            if new_status == 'completed' and old_status != 'completed':
+                cur.execute("""
+                    UPDATE core.tickets
+                    SET resolved_at = NOW(),
+                        resolved_by_experiment = %s,
+                        resolution_notes = 'Automatically resolved by successful experiment',
+                        status = 'Resolved'
+                    WHERE experiment_id = %s AND resolved_at IS NULL
+                """, (hypothesis_id, hypothesis_id))
+                resolved_count = cur.rowcount
+                print(f"Resolved {resolved_count} tickets from experiment {hypothesis_id}")
+
         conn.commit()
+
     return {"message": "Hypothesis updated", "id": hypothesis_id}
 
 # =============================================
