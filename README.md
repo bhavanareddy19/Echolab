@@ -61,16 +61,6 @@ A production-grade microservices architecture with 5 specialized layers — cove
 
 ![Echolab System Architecture](architecture%201.png)
 
----
-
-### End-to-End Data Flow
-
-The complete journey of a customer ticket through the Echolab AI pipeline — from ingestion through semantic clustering, hypothesis generation, and A/B testing.
-
-![Echolab End-to-End Data Flow](architecture%202.png)
-
----
-
 ### Tech Stack Deep Dive
 
 #### Frontend
@@ -620,6 +610,14 @@ NEXT_PUBLIC_API_URL=https://api.echolab.ai
 - Cluster insights and trends
 - Pain point frequency analysis
 - Product impact visualization
+
+---
+
+### End-to-End Data Flow
+
+The complete journey of a customer ticket through the Echolab AI pipeline — from ingestion through semantic clustering, hypothesis generation, and A/B testing.
+
+![Echolab End-to-End Data Flow](architecture%202.png)
 
 ---
 
